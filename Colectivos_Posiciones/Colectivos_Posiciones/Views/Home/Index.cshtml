@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+<style type="text/css">
+
+    #map {
+        background-color: red;
+        width: 70%;
+        height: 700px;
+    }
+</style>
+
+<div class="col-lg-12">
+    <button onclick="javascript: traerData();" class="btn btn-info">ACTUALIZAR</button>
+    <br /> <br />
+    <div id="map"></div>
+</div>
+
+
+
+<script>
+    var map;
+    function initMap() {
+        const myLatLng = { lat: -34.6083, lng: -58.3712 };
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 11,
+            center: myLatLng,
+        });
+
+        traerData();
+    }
+
+    function cargarMarcador(latitud, longitud, titulo) {
+        const latlng = new google.maps.LatLng(latitud, longitud);
+        var myMarkerOptions = {
+            position: latlng,
+            map: map,
+            title: titulo
+        }
+        var myMarker = new google.maps.Marker(myMarkerOptions);
+        markers.push(myMarker);
+    }
+
+    function setMapOnAll(map) {
+        for (let i = 0; i < markers.length; i++) {
+            markers[i].setMap(map);
+        }
+    }
+
+    function traerData() {
+        $.getJSON("/Home/VerColectivos").done(mostrarData).fail(function (e) { console.log(e); });
+    }
+
+    function mostrarData(datos) {
+        borrarMarcadores();
+        var obj = JSON.parse(datos);
+        console.log(obj);
+        for (var i = 0; i < obj.length; i++) {
+            var latitud = obj[i].latitude;
+            var longitud = obj[i].longitude;
+            var titulo = "Colectivo Linea: " + obj[i].route_short_name + " Empresa: " + obj[i].agency_name;
+            cargarMarcador(latitud, longitud, titulo);
+        }
+    }
+
+    function borrarMarcadores() {
+        clearMarkers();
+        markers = [];
+    }
+
+    let markers = [];
+
+    function clearMarkers() {
+        setMapOnAll(null);
+    }
+
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.API_KEY&callback=initMap&libraries=&v=weekly" async></script>
+
+
